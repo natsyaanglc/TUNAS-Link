@@ -1,3 +1,4 @@
+
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -5,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8000);
+
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -18,16 +20,33 @@ const MIME = {
 
 const server = http.createServer(async (req, res) => {
   try {
-    const requestPath = decodeURIComponent(new URL(req.url, `http://${req.headers.host}`).pathname);
-    const relativePath = requestPath === "/" ? "index.html" : requestPath.replace(/^\/+/, "");
+    const requestPath = decodeURIComponent(
+      new URL(req.url, `http://${req.headers.host}`).pathname
+    );
+
+    const relativePath =
+      requestPath === "/" ? "index.html" : requestPath.replace(/^\/+/, "");
+
     const filePath = path.resolve(ROOT, relativePath);
-    if (!filePath.startsWith(ROOT + path.sep) && filePath !== path.join(ROOT, "index.html")) {
+
+    if (
+      !filePath.startsWith(ROOT + path.sep) &&
+      filePath !== path.join(ROOT, "index.html")
+    ) {
       res.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
       res.end("Forbidden");
       return;
     }
+
     const data = await readFile(filePath);
-    res.writeHead(200, { "Content-Type": MIME[path.extname(filePath).toLowerCase()] || "application/octet-stream", "Cache-Control": "no-store" });
+
+    res.writeHead(200, {
+      "Content-Type":
+        MIME[path.extname(filePath).toLowerCase()] ||
+        "application/octet-stream",
+      "Cache-Control": "no-store"
+    });
+
     res.end(data);
   } catch {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
@@ -35,7 +54,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`TUNAS-Link berjalan di http://localhost:${PORT}`);
-  console.log("Tekan Ctrl+C untuk menghentikan server lokal.");
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`TUNAS-Link berjalan pada port ${PORT}`);
 });
+
